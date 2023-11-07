@@ -1,0 +1,132 @@
+#include <algorithm>
+#include <iostream>
+#include <string>
+#include <vector>
+
+void FunkRelocation(std::vector<int>& leftarray, std::vector<int>& rightarray,
+                    std::vector<int>& lamin, std::vector<int>& ramin) {
+  if (rightarray.empty() and !leftarray.empty()) {  // Если массив не пуст
+    int length = leftarray.size();
+    rightarray.push_back(leftarray[length - 1]);
+    ramin.push_back((leftarray[length - 1]));
+    for (int i = length - 2; i >= 0; i--) {
+      rightarray.push_back(leftarray[i]);
+      ramin.push_back(
+          std::min(rightarray[rightarray.size() - 1], ramin[ramin.size() - 1]));
+    }
+    leftarray.clear();
+    lamin.clear();
+  }
+}
+
+void FunkEnqueue(std::vector<int>& leftarray, std::vector<int>& lamin,
+                 int item) {
+  if (leftarray.empty()) {
+    leftarray.push_back(item);
+    lamin.push_back(item);
+  } else {
+    leftarray.push_back(item);
+    lamin.push_back(std::min(lamin[lamin.size() - 1], item));
+  }
+  std::cout << "ok" << '\n';
+}
+
+int FunkDeleteLast(std::vector<int>& rightarray, std::vector<int>& ramin) {
+  int elem = rightarray[rightarray.size() - 1];
+  rightarray.pop_back();
+  ramin.pop_back();
+  return elem;
+}
+
+void FunkDequeue(std::vector<int>& leftarray, std::vector<int>& rightarray,
+                 std::vector<int>& lamin, std::vector<int>& ramin) {
+  if (!rightarray.empty()) {
+    std::cout << FunkDeleteLast(rightarray, ramin) << '\n';
+  } else {
+    if (leftarray.empty()) {
+      std::cout << "error" << '\n';
+    } else {
+      FunkRelocation(leftarray, rightarray, lamin, ramin);
+      std::cout << FunkDeleteLast(rightarray, ramin) << '\n';
+    }
+  }
+}
+
+void FunkFront(std::vector<int>& leftarray, std::vector<int>& rightarray) {
+  if (!rightarray.empty()) {
+    std::cout << rightarray[rightarray.size() - 1] << '\n';
+  } else if (!leftarray.empty()) {
+    std::cout << leftarray[0] << '\n';
+  } else {
+    std::cout << "error" << '\n';
+  }
+}
+
+void FunkSize(std::vector<int>& leftarray, std::vector<int>& rightarray) {
+  std::cout << static_cast<int>(leftarray.size()) +
+                   static_cast<int>(rightarray.size())
+            << '\n';
+}
+
+void Funkclear(std::vector<int>& leftarray,
+               std::vector<int>& rightarray,  // вроде работает
+               std::vector<int>& lamin, std::vector<int>& ramin) {
+  leftarray.clear();
+  lamin.clear();
+  rightarray.clear();
+  ramin.clear();
+  std::cout << "ok" << '\n';
+}
+
+void Funkmin(std::vector<int>& lamin, std::vector<int>& ramin) {
+  if (lamin.empty() and ramin.empty()) {  // Проверка на то что не пуст
+    std::cout << "error" << '\n';
+  } else if (!lamin.empty() and
+             ramin.empty()) {  // Первый массив не пуст, а второй пуст
+    int minl = lamin[lamin.size() - 1];
+    std::cout << minl << '\n';
+
+  } else if (lamin.empty() and
+             !ramin.empty()) {  // Первый массив пуст, а не второй пуст
+
+    int minr = ramin[ramin.size() - 1];
+    std::cout << minr << '\n';
+  } else {  // оба не пусты, выбираем минимум из обоих
+    int minr = ramin[ramin.size() - 1];
+    int minl = lamin[lamin.size() - 1];
+    std::cout << std::min(minl, minr) << '\n';
+  }
+}
+
+void Input(std::vector<int>& leftarray, std::vector<int>& rightarray,
+           std::vector<int>& lamin, std::vector<int>& ramin, int nn) {
+  for (int i = 0; i < nn; i++) {
+    std::string key;
+    std::cin >> key;
+    if (key == "enqueue") {
+      int iq;
+      std::cin >> iq;
+      FunkEnqueue(leftarray, lamin, iq);
+    } else if (key == "dequeue") {
+      FunkDequeue(leftarray, rightarray, lamin, ramin);
+    } else if (key == "front") {
+      FunkFront(leftarray, rightarray);
+    } else if (key == "size") {
+      FunkSize(leftarray, rightarray);
+    } else if (key == "clear") {
+      Funkclear(leftarray, rightarray, lamin, ramin);
+    } else if (key == "min") {
+      Funkmin(lamin, ramin);
+    }
+  }
+}
+
+int main() {
+  int nn;
+  std::cin >> nn;
+  std::vector<int> leftarray;
+  std::vector<int> rightarray;
+  std::vector<int> lamin;
+  std::vector<int> ramin;
+  Input(leftarray, rightarray, lamin, ramin, nn);
+}
