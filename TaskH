@@ -1,0 +1,208 @@
+#include <algorithm>
+#include <iostream>
+#include <string>
+#include <vector>
+
+struct MiniMaxHeap {
+  std::vector<std::pair<long long, long long>>
+      minheap; /* реализация minheap`ы, на первом месте
+           значение, на втором идекс в maxheap */
+  std::vector<std::pair<long long, long long>>
+      maxheap; /* реализация maxheap`ы, на первом месте
+           значение, на втором идекс в minheap */
+
+  MiniMaxHeap()
+      : minheap(1, std::make_pair(-1, -1)),
+        maxheap(1, std::make_pair(
+                       -1, -1)){};  // делаю 1 нумерацию чтбы все работало
+
+  void SwapMin(long long inda1,
+               long long inda2) {  // индексы элементов в minheap
+    std::pair<long long, long long> tmp1 = minheap[inda1];  // храню значения
+    std::pair<long long, long long> tmp2 = minheap[inda2];
+    minheap[inda1] = tmp2;  // обмен элементов
+    minheap[inda2] = tmp1;
+    std::pair<long long, long long> tmpa1 = maxheap[tmp1.second];
+    std::pair<long long, long long> tmpa2 = maxheap[tmp2.second];
+    maxheap[tmp1.second].second = tmpa2.second;
+    maxheap[tmp2.second].second = tmpa1.second;
+  }
+
+  void SwapMax(long long inda1,
+               long long inda2) {  // индексы элементов в maxheap
+    std::pair<long long, long long> tmp1 = maxheap[inda1];  // храню значения
+    std::pair<long long, long long> tmp2 = maxheap[inda2];
+    maxheap[inda1] = tmp2;  // обмен элементов
+    maxheap[inda2] = tmp1;
+
+    std::pair<long long, long long> tmpa1 = minheap[tmp1.second];
+    std::pair<long long, long long> tmpa2 = minheap[tmp2.second];
+    minheap[tmp1.second].second = tmpa2.second;
+    minheap[tmp2.second].second = tmpa1.second;
+  }
+
+  void HeapifyMin(long long ind) {
+    long long leftson = 2 * ind;
+    long long rightson = 2 * ind + 1;
+    long long father = ind;
+    long long heapsize = static_cast<long long>(minheap.size());
+    if ((leftson <= heapsize - 1) and (minheap[leftson] < minheap[father])) {
+      father = leftson;
+    }
+    if ((rightson <= heapsize - 1) and (minheap[rightson] < minheap[father])) {
+      father = rightson;
+    }
+    if (father != ind) {
+      SwapMin(ind, father);
+      HeapifyMin(father);
+    }
+  }
+
+  void HeapifyMax(long long ind) {
+    long long leftson = 2 * ind;
+    long long rightson = 2 * ind + 1;
+    long long father = ind;
+    long long heapsize = static_cast<long long>(maxheap.size());
+    if ((leftson <= heapsize - 1) and (maxheap[leftson] > maxheap[father])) {
+      father = leftson;
+    }
+    if ((rightson <= heapsize - 1) and (maxheap[rightson] > maxheap[father])) {
+      father = rightson;
+    }
+    if (father != ind) {
+      SwapMax(ind, father);
+      HeapifyMax(father);
+    }
+  }
+
+  void HeapDecreaseKey(long long ind, long long delta) {
+    // уменьшаю элемент на дельту
+    minheap[ind].first -= delta;
+    while ((ind > 1) and (minheap[ind / 2].first > minheap[ind].first)) {
+      SwapMin(ind, ind / 2);
+      ind = ind / 2;
+    }
+  }
+
+  void HeapIncreaseKey(long long ind, long long delta) {
+    // увеличиваю элемент на дельту
+    maxheap[ind].first += delta;
+    while ((ind > 1) and (maxheap[ind / 2].first < maxheap[ind].first)) {
+      SwapMax(ind, ind / 2);
+      ind = ind / 2;
+    }
+  }
+
+  void HeapInsert(long long elem) {
+    if (static_cast<long long>(minheap.size()) == 1) {
+      minheap.push_back(std::make_pair(elem, 1));
+      maxheap.push_back(std::make_pair(elem, 1));
+    } else {
+      long long ind = static_cast<long long>(maxheap.size());
+      minheap.push_back(std::make_pair(0, ind));
+      maxheap.push_back(std::make_pair(0, ind));
+      HeapDecreaseKey(ind, -elem);
+      HeapIncreaseKey(ind, elem);
+    }
+    std::cout << "ok" << '\n';
+  }
+
+  void GetMin() {
+    if (static_cast<long long>(minheap.size()) == 1) {
+      std::cout << "error" << '\n';
+    } else {
+      std::cout << minheap[1].first << '\n';
+    }
+  }
+
+  void GetMax() {
+    if (static_cast<long long>(maxheap.size()) == 1) {
+      std::cout << "error" << '\n';
+    } else {
+      std::cout << maxheap[1].first << '\n';
+    }
+  }
+
+  void ExtractMin() {
+    if (static_cast<long long>(minheap.size()) == 1) {
+      std::cout << "error" << '\n';
+    } else {
+      std::pair<long long, long long> tmp = minheap[1];
+      std::cout << tmp.first << '\n';
+      SwapMin(1, static_cast<long long>(minheap.size()) - 1);
+      // Heapmax
+      long long imax = tmp.second;
+      const long long kInf = 1e9 + 10000;
+      HeapIncreaseKey(imax, kInf);
+      SwapMax(1, static_cast<long long>(maxheap.size()) - 1);
+      maxheap.pop_back();
+      minheap.pop_back();
+      HeapifyMax(1);
+      HeapifyMin(1);
+    }
+  }
+
+  void ExtraxtMax() {
+    if (static_cast<long long>(maxheap.size()) == 1) {
+      std::cout << "error" << '\n';
+    } else {
+      std::pair<long long, long long> tmp = maxheap[1];
+      std::cout << tmp.first << '\n';
+      SwapMax(1, static_cast<long long>(maxheap.size()) - 1);
+      // Heapmin
+      long long imin = tmp.second;
+      const long long kInf = 1e9 + 10000;
+      HeapDecreaseKey(imin, kInf);
+      SwapMin(1, static_cast<long long>(minheap.size()) - 1);
+      maxheap.pop_back();
+      minheap.pop_back();
+      HeapifyMax(1);
+      HeapifyMin(1);
+    }
+  }
+
+  void Size() const {
+    std::cout << static_cast<long long>(minheap.size()) - 1 << '\n';
+  }
+
+  void Clear() {
+    minheap.clear();
+    maxheap.clear();
+    minheap.push_back(std::make_pair(-1, -1));
+    maxheap.push_back(std::make_pair(-1, -1));
+    std::cout << "ok" << '\n';
+  }
+};
+
+void Input(MiniMaxHeap& hh) {
+  std::string operation;
+  std::cin >> operation;
+  if (operation == "insert") {
+    long long elem;
+    std::cin >> elem;
+    hh.HeapInsert(elem);
+  } else if (operation == "extract_min") {
+    hh.ExtractMin();
+  } else if (operation == "get_min") {
+    hh.GetMin();
+  } else if (operation == "extract_max") {
+    hh.ExtraxtMax();
+  } else if (operation == "get_max") {
+    hh.GetMax();
+  } else if (operation == "size") {
+    hh.Size();
+  } else if (operation == "clear") {
+    hh.Clear();
+  }
+}
+
+int main() {
+  std::ios::sync_with_stdio(false);
+  std::cin.tie(0);
+  long long nn;
+  MiniMaxHeap hh;
+  std::cin >> nn;
+  for (long long i = 1; i <= nn; i++) {
+    Input(hh);
+  }
+}
