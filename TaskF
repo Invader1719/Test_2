@@ -1,0 +1,104 @@
+#include <algorithm>
+#include <iostream>
+#include <string>
+#include <vector>
+
+struct Heap {
+  std::vector<std::pair<long long, long long>>
+      aa;  // реализация heap`ы, на первом месте
+           // значение, на втором номер запроса
+  std::vector<long long> indexes;
+  Heap()
+      : aa(1, std::make_pair(-1, -1)){};  // делаю 1 нумерацию чтбы все работало
+
+  void Swap(long long inda1, long long inda2) {  // индексы элементов в aa
+    std::pair<long long, long long> tmp1 = aa[inda1];  // храню значения
+    std::pair<long long, long long> tmp2 = aa[inda2];
+    aa[inda1] = tmp2;  // обмен элементов
+    aa[inda2] = tmp1;
+    indexes[tmp1.second] = inda2;  // обмен индексов в массиве indexes
+    indexes[tmp2.second] = inda1;
+  }
+
+  void Heapify(long long ind) {
+    long long leftson = 2 * ind;       // Левый сын
+    long long rightson = 2 * ind + 1;  // Правый сын
+    long long father = ind;
+    long long heapsize = static_cast<long long>(aa.size());
+    if ((leftson <= heapsize - 1) and (aa[leftson] < aa[father])) {
+      father = leftson;
+    }
+    if ((rightson <= heapsize - 1) and (aa[rightson] < aa[father])) {
+      father = rightson;
+    }
+    if (father != ind) {
+      Swap(ind, father);
+      Heapify(father);
+    }
+  }
+
+  void HeapDecreaseKey(long long reqest, long long delta) {
+    long long inda =
+        indexes[reqest];  // в indexes индекс искомого элемента в куче aa
+    std::pair<long long, long long> elem = std::make_pair(
+        aa[inda].first - delta, aa[inda].second);  // уменьшаю элемент на дельту
+    aa[inda] = elem;
+    while ((inda > 1) and (aa[inda / 2].first > aa[inda].first)) {
+      Swap(inda, inda / 2);
+      inda = inda / 2;
+    }
+  }
+
+  void HeapInsert(long long elem, long long reqest) {
+    if (static_cast<long long>(aa.size()) == 1) {
+      aa.push_back(std::make_pair(elem, reqest));
+      indexes[reqest] = 1;
+    } else {
+      aa.push_back(std::make_pair(0, reqest));
+      indexes[reqest] = static_cast<long long>(aa.size()) - 1;
+      HeapDecreaseKey(reqest, -elem);
+    }
+  }
+
+  void GetMin() { std::cout << aa[1].first << '\n'; }
+
+  void ExtraxtMin() {
+    aa[1] = aa[static_cast<long long>(aa.size()) - 1];
+    indexes[aa[1].second] = 1;
+    aa.pop_back();
+    if (aa.size() > 1) {
+      Heapify(1);
+    }
+  }
+};
+
+void Input(Heap& hh, long long request) {
+  std::string operation;
+  std::cin >> operation;
+  if (operation == "insert") {
+    long long elem;
+    std::cin >> elem;
+    hh.HeapInsert(elem, request);
+  } else if (operation == "getMin") {
+    hh.GetMin();
+  } else if (operation == "extractMin") {
+    hh.ExtraxtMin();
+  } else if (operation == "decreaseKey") {
+    long long request;
+    long long delta;
+    std::cin >> request >> delta;
+    hh.HeapDecreaseKey(request, delta);
+  }
+}
+
+int main() {
+  std::ios::sync_with_stdio(false);
+  std::cin.tie(0);
+  long long nn;
+  Heap hh;
+  std::cin >> nn;
+  hh.indexes.assign(nn + 1, -1);
+  for (long long i = 1; i <= nn; i++) {
+    Input(hh, i);
+  }
+}
